@@ -41,7 +41,7 @@ namespace MyPlugin
                 try
                 {
                     // Plug-in business logic goes here.
-                    //
+                    /
 
 
 
