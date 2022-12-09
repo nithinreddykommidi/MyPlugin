@@ -5,10 +5,11 @@ using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 
 namespace MyPlugin
 {
-    public class HelloWorld : IPlugin
+    public class DuplicateCheck : IPlugin
     {
         public void Execute(IServiceProvider serviceProvider)
         {
@@ -35,21 +36,33 @@ namespace MyPlugin
                 context.InputParameters["Target"] is Entity)
             {
                 // Obtain the target entity from the input parameters.  
-                Entity entity = (Entity)context.InputParameters["Target"];
+                Entity contact = (Entity)context.InputParameters["Target"];
 
                 try
                 {
                     // Plug-in business logic goes here.
-                    string firstName = string.Empty;
-                    if (entity.Attributes.Contains("firstname"))
+                    string email = string.Empty;
+                    if (contact.Attributes.Contains("emailaddress1")) 
                     {
-                        firstName = entity.Attributes["firstname"].ToString();
+                        contact.Attributes["emailaddress1"].ToString();
+                        //  Passing contact table to query
+                        QueryExpression query = new QueryExpression("contact");
+                        // Getting the required coloumn set from the table
+                        // pass the required fields as the array of string
+                        query.ColumnSet = new ColumnSet(new string[] { "emailaddress1" });
+                        // adding retrieved email in where clause 
+                        query.Criteria.AddCondition("emailaddress1", ConditionOperator.Equal, email);
+                        EntityCollection collection = service.RetrieveMultiple(query);
+
+                        if (collection.Entities.Count > 0)
+                        {
+                            throw new InvalidPluginExecutionException("Email already exists, Plaease try with another");
+
+                        }
+
                     }
+
                     
-                    string lastName = entity.Attributes["lastname"].ToString();
-
-                    entity.Attributes.Add("description", "Hello " + firstName +" "+ lastName);
-
 
                 }
 
@@ -67,4 +80,3 @@ namespace MyPlugin
         }
     }
 }
-

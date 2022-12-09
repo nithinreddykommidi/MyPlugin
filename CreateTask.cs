@@ -8,7 +8,7 @@ using Microsoft.Xrm.Sdk;
 
 namespace MyPlugin
 {
-    public class HelloWorld : IPlugin
+    public class CreateTask : IPlugin
     {
         public void Execute(IServiceProvider serviceProvider)
         {
@@ -35,21 +35,28 @@ namespace MyPlugin
                 context.InputParameters["Target"] is Entity)
             {
                 // Obtain the target entity from the input parameters.  
-                Entity entity = (Entity)context.InputParameters["Target"];
+                Entity contact = (Entity)context.InputParameters["Target"];
 
                 try
                 {
                     // Plug-in business logic goes here.
-                    string firstName = string.Empty;
-                    if (entity.Attributes.Contains("firstname"))
-                    {
-                        firstName = entity.Attributes["firstname"].ToString();
-                    }
-                    
-                    string lastName = entity.Attributes["lastname"].ToString();
+                    Entity taskRecord = new Entity("task");
+                    // text
+                    taskRecord.Attributes.Add("subject","followup");
+                    taskRecord.Attributes.Add("description", "description for followup");
 
-                    entity.Attributes.Add("description", "Hello " + firstName +" "+ lastName);
+                    // Date
+                    taskRecord.Attributes.Add("scheduledend",DateTime.Now.AddDays(2));
 
+                    // Dropdowns(OptionSetValue)
+                    taskRecord.Attributes.Add("prioritycode", new OptionSetValue(2));
+
+                    // Lookup Field(ToEntityReference)
+
+                    //taskRecord.Attributes.Add("regardingobjectid", new EntityReference("contact",contact.Id));
+
+                    taskRecord.Attributes.Add("regardingobjectid", contact.ToEntityReference());
+                    Guid taskGuid = service.Create(taskRecord);
 
                 }
 
@@ -67,4 +74,3 @@ namespace MyPlugin
         }
     }
 }
-
